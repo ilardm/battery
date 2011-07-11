@@ -29,7 +29,7 @@ fh.close()
 
 #pat=re.compile(r"last\ full\ capacity:\ +[0-9]+")
 #fullCap=pat.findall(s)[0]
-fullCap=string.atoi(s)
+fullCap=string.atof(s)
 
 #pat=re.compile(r"[0-9]+")
 #fullCap=string.atof( pat.findall(fullCap)[0] )
@@ -41,27 +41,28 @@ fh.close()
 
 #pat=re.compile(r"remaining\ capacity:\ +[0-9]+")
 #remCap=pat.findall(s)[0]
-remCap=string.atoi(s)
+remCap=string.atof(s)
 
 #pat=re.compile(r"[0-9]+")
 #remCap=string.atof( pat.findall(remCap)[0] )
 
-ret="%i"%(remCap/fullCap*100)+chr(37)
+ret="%i"%(remCap/fullCap*100.0)+chr(37)
 
 # time remaining
 batPath_prev="/tmp/bat.tmp"
 period=30
 
-print "1st if"
+fh=open(BATPATH+"status", "r")
+s=fh.read()
+fh.close()
 
-if ( s.find("discharging")==-1 ):
+if ( not s.startswith("Discharging") ):
     print ret
     if ( os.path.exists(batPath_prev) ):
         os.remove(batPath_prev)
     sys.exit(0)
 
 def dump(remTime):
-    print "dump"
     fh=open(batPath_prev, "w")
     fh.write( str( int(time.time()) )+"\n" )
     fh.write( str( int(remCap) )+"\n" )
@@ -69,16 +70,17 @@ def dump(remTime):
     fh.close()
 
 def toTime(t):
-    if (t==0):
-        remTimes="calculating"
-    else:
+    remTimes="calculating"
+    if ( not t==0 ):
         remH=int(t/60/60)
         remM=(t-remH*60*60)/60
         remTimes="%02d:%02d"%(remH, remM)
 
     return remTimes
 
-print "body"
+# body
+
+remTimes=""
 
 if ( os.path.exists(batPath_prev) ):
     curTime=int(time.time())
