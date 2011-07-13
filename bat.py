@@ -21,31 +21,19 @@ import re, string, time, os, sys
 
 BATPATH="/sys/class/power_supply/BAT0/"
 
+# last full capacity
 fh=open(BATPATH+"charge_full", "r")
 s=fh.read()
 fh.close()
-
-# design capacity
-
-#pat=re.compile(r"last\ full\ capacity:\ +[0-9]+")
-#fullCap=pat.findall(s)[0]
 fullCap=string.atof(s)
-
-#pat=re.compile(r"[0-9]+")
-#fullCap=string.atof( pat.findall(fullCap)[0] )
 
 # remaining capacity
 fh=open(BATPATH+"charge_now", "r")
 s=fh.read()
 fh.close()
-
-#pat=re.compile(r"remaining\ capacity:\ +[0-9]+")
-#remCap=pat.findall(s)[0]
 remCap=string.atof(s)
 
-#pat=re.compile(r"[0-9]+")
-#remCap=string.atof( pat.findall(remCap)[0] )
-
+# create info skeleton
 ret="%i"%(remCap/fullCap*100.0)+chr(37)
 
 # time remaining
@@ -56,11 +44,15 @@ fh=open(BATPATH+"status", "r")
 s=fh.read()
 fh.close()
 
+# if AC plugged in -- just print info and delete tmp file
+# else -- calc remTime
 if ( not s.startswith("Discharging") ):
     print ret
     if ( os.path.exists(batPath_prev) ):
         os.remove(batPath_prev)
     sys.exit(0)
+
+# functions
 
 def dump(remTime):
     fh=open(batPath_prev, "w")
@@ -82,17 +74,18 @@ def toTime(t):
 
 remTimes=""
 
+# if !first run -- read prev results
 if ( os.path.exists(batPath_prev) ):
     curTime=int(time.time())
     fh=open(batPath_prev, "r")
     
     oldTime=string.atoi( fh.readline() )
-    oldCap=string.atoi( fh.readline() )
+    oldCap=string.atof( fh.readline() )
     oldRemTime=string.atof( fh.readline() )
     
     fh.close()
 
-    if( curTime-oldTime>=period ):
+    if( curTime-oldTime >= period ):
         deltaCap=oldCap-remCap
         deltaTime=curTime-oldTime
         vel=deltaCap/deltaTime
