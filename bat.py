@@ -45,7 +45,7 @@ def toTime(t):
     return remTimes
 
 def notify(t):
-    cmd="export DISPLAY=:0.0; su %s -c \"echo \\\"battery level: %s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
+    cmd="export DISPLAY=:0.0; killall -q aosd_cat; su %s -c \"echo \\\"battery level: %s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
     os.system(cmd)
 
 # last full capacity
