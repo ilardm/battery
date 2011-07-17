@@ -17,9 +17,36 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, string, time, os, sys
+import string, time, os, sys
 
 BATPATH="/sys/class/power_supply/BAT0/"
+argv=sys.argv
+argc=len(argv)
+
+username="ilya" # change this username according to your username
+osdfont="DejaVuSans 36"
+
+# functions
+
+def dump(remTime):
+    fh=open(batPath_prev, "w")
+    fh.write( str( int(time.time()) )+"\n" )
+    fh.write( str( int(remCap) )+"\n" )
+    fh.write( str( remTime )+"\n" )
+    fh.close()
+
+def toTime(t):
+    remTimes="calculating"
+    if ( not t==0 ):
+        remH=int(t/60/60)
+        remM=(t-remH*60*60)/60
+        remTimes="%02d:%02d"%(remH, remM)
+
+    return remTimes
+
+def notify(t):
+    cmd="export DISPLAY=:0.0; su %s -c \"echo \\\"battery level: %s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
+    os.system(cmd)
 
 # last full capacity
 fh=open(BATPATH+"charge_full", "r")
@@ -44,35 +71,42 @@ fh=open(BATPATH+"status", "r")
 s=fh.read()
 fh.close()
 
+# determine mode
+MOD_STDOUT=False
+MOD_NOTIFY=False
+MOD_WATCHD=False
+
+if ( argc>0 ):
+    for i in argv:
+        if ( i=='stdout' ):
+            MOD_STDOUT=True
+            continue
+
+        if ( i=='notify' ):
+            MOD_NOTIFY=True
+            continue
+
+        if ( i=='watchd' ):
+            MOD_STDOUT=True
+            continue
+
 # if AC plugged in -- just print info and delete tmp file
 # else -- calc remTime
 if ( not s.startswith("Discharging") ):
-    print ret
+    if ( MOD_STDOUT ):
+        print ret
+
+    if ( MOD_NOTIFY ):
+        notify(ret)
+
     if ( os.path.exists(batPath_prev) ):
         os.remove(batPath_prev)
     sys.exit(0)
 
-# functions
-
-def dump(remTime):
-    fh=open(batPath_prev, "w")
-    fh.write( str( int(time.time()) )+"\n" )
-    fh.write( str( int(remCap) )+"\n" )
-    fh.write( str( remTime )+"\n" )
-    fh.close()
-
-def toTime(t):
-    remTimes="calculating"
-    if ( not t==0 ):
-        remH=int(t/60/60)
-        remM=(t-remH*60*60)/60
-        remTimes="%02d:%02d"%(remH, remM)
-
-    return remTimes
-
 # body
 
 remTimes=""
+remTime=0
 
 # if !first run -- read prev results
 if ( os.path.exists(batPath_prev) ):
@@ -104,5 +138,12 @@ else:
     dump( 0 )
 
 ret+=" %s"%remTimes
-    
-print ret
+
+if ( MOD_STDOUT ):
+    print ret
+
+if ( MOD_NOTIFY ):
+    notify(ret)
+
+if ( MOD_WATCHD ):
+    pass
