@@ -114,6 +114,7 @@ if ( not s.startswith("Discharging") ):
 
 remTimes=""
 remTime=0
+suspendAllowed=True
 
 # if !first run -- read prev results
 if ( os.path.exists(batPath_prev) ):
@@ -143,6 +144,7 @@ if ( os.path.exists(batPath_prev) ):
 else:
     # first write
     dump( 0 )
+    suspendAllowed=False
 
 ret+=" %s"%remTimes
 
@@ -152,5 +154,5 @@ if ( MOD_STDOUT ):
 if ( MOD_NOTIFY ):
     notify("battery level: "+ret)
 
-if ( MOD_WATCHD ):
+if ( MOD_WATCHD and suspendAllowed):
     watchd(remTime)
