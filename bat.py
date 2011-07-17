@@ -3,17 +3,17 @@
 
 # Battery information and watchdog script
 # Copyright (C) 2011  Ilya Arefiev <arefiev.id@gmail.com>
-
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -25,6 +25,7 @@ argc=len(argv)
 
 username="ilya" # change this username according to your username
 osdfont="DejaVuSans 36"
+tts=1800 # time to suspend (seconds)
 
 # functions
 
@@ -47,6 +48,12 @@ def toTime(t):
 def notify(t):
     cmd="export DISPLAY=:0.0; killall -q aosd_cat; su %s -c \"echo \\\"battery level: %s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
     os.system(cmd)
+
+def watchd(t):
+    if ( t < tts ):
+        notify("going to suspend")
+        cmd="/usr/sbin/pm-suspend"
+        os.system(cmd)
 
 # last full capacity
 fh=open(BATPATH+"charge_full", "r")
@@ -87,7 +94,7 @@ if ( argc>0 ):
             continue
 
         if ( i=='watchd' ):
-            MOD_STDOUT=True
+            MOD_WATCHD=True
             continue
 
 # if AC plugged in -- just print info and delete tmp file
@@ -107,6 +114,7 @@ if ( not s.startswith("Discharging") ):
 
 remTimes=""
 remTime=0
+suspendAllowed=True
 
 # if !first run -- read prev results
 if ( os.path.exists(batPath_prev) ):
@@ -136,6 +144,7 @@ if ( os.path.exists(batPath_prev) ):
 else:
     # first write
     dump( 0 )
+    suspendAllowed=False
 
 ret+=" %s"%remTimes
 
@@ -143,7 +152,7 @@ if ( MOD_STDOUT ):
     print ret
 
 if ( MOD_NOTIFY ):
-    notify(ret)
+    notify("battery level: "+ret)
 
-if ( MOD_WATCHD ):
-    pass
+if ( MOD_WATCHD and suspendAllowed):
+    watchd(remTime)
