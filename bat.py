@@ -23,6 +23,9 @@ BATPATH="/sys/class/power_supply/BAT0/"
 argv=sys.argv
 argc=len(argv)
 
+username="ilya" # change this username according to your username
+osdfont="DejaVuSans 36"
+
 # functions
 
 def dump(remTime):
@@ -42,7 +45,7 @@ def toTime(t):
     return remTimes
 
 def notify(t):
-    cmd="export DISPLAY=:0.0; echo \"battery level: %s\" | aosd_cat -f 100 -d 5 & " % t
+    cmd="export DISPLAY=:0.0; su %s -c \"echo \\\"battery level: %s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
     os.system(cmd)
 
 # last full capacity
