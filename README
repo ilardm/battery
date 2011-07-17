@@ -5,7 +5,7 @@ Battery information and watchdog script
 Run
 	python bat.py [ stdout | notify | watchd ]
 
-Or add following lines into root's crontab:
+Or add following line into root's crontab:
 	*/10 * * * * /usr/bin/env python /root/bat.py notify watchd
 
 to check battery status every 10 minutes
