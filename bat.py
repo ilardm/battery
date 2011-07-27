@@ -26,6 +26,7 @@ argc=len(argv)
 username="ilya" # change this username according to your username
 osdfont="DejaVuSans 36"
 tts=1800 # time to suspend (seconds)
+percents=100
 
 # functions
 
@@ -68,7 +69,8 @@ fh.close()
 remCap=string.atof(s)
 
 # create info skeleton
-ret="%i"%(remCap/fullCap*100.0)+chr(37)
+percents=remCap/fullCap*100.0
+ret="%i"%(percents)+chr(37)
 
 # time remaining
 batPath_prev="/tmp/bat.tmp"
@@ -103,7 +105,7 @@ if ( not s.startswith("Discharging") ):
     if ( MOD_STDOUT ):
         print ret
 
-    if ( MOD_NOTIFY ):
+    if ( MOD_NOTIFY and percents < 99):
         notify(ret)
 
     if ( os.path.exists(batPath_prev) ):
