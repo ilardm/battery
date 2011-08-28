@@ -69,7 +69,8 @@ def watchd(t):
 			cmd="/usr/sbin/pm-suspend"
 			os.system(cmd)
 		elif( isObsd ):
-			notify(MSG_NOT_IMPLEMENTED)
+			cmd="/usr/sbin/apm -z"
+			os.system(cmd)
 		else:
 			notify(MSG_UNSUPPORTED_SYSTEM)
 
