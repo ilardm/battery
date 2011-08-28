@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import string, time, os, sys
+import string, time, os, sys, pyosd
 
 MSG_UNSUPPORTED_SYSTEM="don't know what can i do on this OS"
 MSG_NOT_IMPLEMENTED="not implemented yet"
@@ -33,6 +33,8 @@ percents=100
 
 isLinux=( sys.platform.find("linux")>=0 )
 isObsd=( sys.platform.find("openbsd")>=0 )
+
+notifyer=pyosd.osd(colour="#00FF00", timeout=3, pos=pyosd.POS_BOT)
 
 # functions
 def dump(remTime):
@@ -53,7 +55,9 @@ def toTime(t):
 
 def notify(t):
     # TODO: use pyosd
-	print MSG_NOT_IMPLEMENTED
+	#print MSG_NOT_IMPLEMENTED
+	notifyer.display(t)
+	notifyer.wait_until_no_display()
 
     #cmd="export DISPLAY=:0.0; killall -q aosd_cat; su %s -c \"echo \\\"%s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
     #os.system(cmd)
