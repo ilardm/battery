@@ -34,6 +34,10 @@ percents=100
 isLinux=( sys.platform.find("linux")>=0 )
 isObsd=( sys.platform.find("openbsd")>=0 )
 
+# workaround 4 pyosd
+if (not os.environ.has_key("DISPLAY")):
+	os.putenv("DISPLAY", ":0.0")
+
 notifyer=pyosd.osd(colour="#00FF00", timeout=3, pos=pyosd.POS_BOT)
 
 # functions
