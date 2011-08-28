@@ -40,7 +40,7 @@ notifyer=pyosd.osd(colour="#00FF00", timeout=3, pos=pyosd.POS_BOT)
 def dump(remTime):
     fh=open(batPath_prev, "w")
     fh.write( str( int(time.time()) )+"\n" )
-    fh.write( str( int(remCap) )+"\n" )
+    fh.write( str( remCap )+"\n" )
     fh.write( str( remTime )+"\n" )
     fh.close()
 
@@ -202,24 +202,31 @@ suspendAllowed=True
 if ( os.path.exists(batPath_prev) ):
     curTime=int(time.time())
     fh=open(batPath_prev, "r")
-    
+
     oldTime=string.atoi( fh.readline() )
     oldCap=string.atof( fh.readline() )
     oldRemTime=string.atof( fh.readline() )
-    
+
+    ## debug
+    #print "rc %f"%( remCap )
+    #print "ot %f; oc %f; ort %f"%( oldTime, oldCap, oldRemTime )
+
     fh.close()
 
     if( curTime-oldTime >= period ):
-        deltaCap=oldCap-remCap
+        deltaCap=abs(oldCap-remCap)
         deltaTime=curTime-oldTime
         vel=deltaCap/deltaTime
+
+        ## debug
+        #print "dc %f; dt %f; v %f"%( deltaCap, deltaTime, vel )
 
         try:
           remTime=remCap/vel
         except ZeroDivisionError:
           remTime=0
         remTimes=toTime(remTime)
-        
+
         dump( remTime )
     else:
         remTimes=toTime( oldRemTime )
