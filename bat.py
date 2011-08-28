@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
 
 # Battery information and watchdog script
@@ -19,6 +19,9 @@
 
 import string, time, os, sys
 
+MSG_UNSUPPORTED_SYSTEM="don't know what can i do on this OS"
+MSG_NOT_IMPLEMENTED="not implemented yet"
+
 BATPATH="/sys/class/power_supply/BAT0/"
 argv=sys.argv
 argc=len(argv)
@@ -28,8 +31,10 @@ osdfont="DejaVuSans 36"
 tts=1800 # time to suspend (seconds)
 percents=100
 
-# functions
+isLinux=( sys.platform.find("linux")>=0 )
+isObsd=( sys.platform.find("openbsd")>=0 )
 
+# functions
 def dump(remTime):
     fh=open(batPath_prev, "w")
     fh.write( str( int(time.time()) )+"\n" )
@@ -47,40 +52,111 @@ def toTime(t):
     return remTimes
 
 def notify(t):
-    cmd="export DISPLAY=:0.0; killall -q aosd_cat; su %s -c \"echo \\\"%s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
-    os.system(cmd)
+    # TODO: use pyosd
+	print MSG_NOT_IMPLEMENTED
+
+    #cmd="export DISPLAY=:0.0; killall -q aosd_cat; su %s -c \"echo \\\"%s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
+    #os.system(cmd)
 
 def watchd(t):
-    if ( t < tts ):
-        notify("going to suspend")
-        cmd="/usr/sbin/pm-suspend"
-        os.system(cmd)
+	if ( t < tts ):
+		notify("going to suspend")
+		if ( isLinux ):
+			cmd="/usr/sbin/pm-suspend"
+			os.system(cmd)
+		elif( isObsd ):
+			notify(MSG_NOT_IMPLEMENTED)
+		else:
+			notify(MSG_UNSUPPORTED_SYSTEM)
 
+#
 # last full capacity
-fh=open(BATPATH+"charge_full", "r")
-s=fh.read()
-fh.close()
-fullCap=string.atof(s)
+#
+#print "getting # last full capacity"
+fullCap=0
+if ( isLinux ):
+	fh=open(BATPATH+"charge_full", "r")
+	s=fh.read()
+	fh.close()
+	fullCap=string.atof(s)
+elif ( isObsd ):
+	#print MSG_NOT_IMPLEMENTED
 
+	cmd="sysctl -n hw.sensors.acpibat0.amphour0 | sed 's/\ Ah.*//'"
+	pipe=os.popen(cmd)
+	s=pipe.readline()
+	#TODO: close pipe
+	fullCap=string.atof(s)
+	#print fullCap
+
+	#sys.exit(1)
+else:
+	print MSG_UNSUPPORTED_SYSTEM
+	sys.exit(1)
+
+#
 # remaining capacity
-fh=open(BATPATH+"charge_now", "r")
-s=fh.read()
-fh.close()
-remCap=string.atof(s)
+#
+#print "getting # remaining capacity"
+remCap=0
+if ( isLinux ):
+	fh=open(BATPATH+"charge_now", "r")
+	s=fh.read()
+	fh.close()
+	remCap=string.atof(s)
+elif ( isObsd ):
+	#print MSG_NOT_IMPLEMENTED
 
+	cmd="sysctl -n hw.sensors.acpibat0.amphour3 | sed 's/\ Ah.*//'"
+	pipe=os.popen(cmd)
+	s=pipe.readline()
+	#TODO: close pipe
+	remCap=string.atof(s)
+	#print fullCap
+
+	#sys.exit(1)
+else:
+	print MSG_UNSUPPORTED_SYSTEM
+	sys.exit(1)
+
+#
 # create info skeleton
+#
 percents=remCap/fullCap*100.0
 ret="%i"%(percents)+chr(37)
 
+#
 # time remaining
+#
 batPath_prev="/tmp/bat.tmp"
 period=30
 
-fh=open(BATPATH+"status", "r")
-s=fh.read()
-fh.close()
+#
+# status
+#
+#print "getting # status"
+s=""
+if ( isLinux ):
+	fh=open(BATPATH+"status", "r")
+	s=fh.read()
+	fh.close()
+elif ( isObsd ):
+	#print MSG_NOT_IMPLEMENTED
 
+	cmd="sysctl -n hw.sensors.acpibat0.raw0 | sed -e 's/.*(//' -e 's/).*//'"
+	pipe=os.popen(cmd)
+	s=pipe.readline()
+	#TODO: close pipe
+	#print s
+
+	#sys.exit(1)
+else:
+	print MSG_UNSUPPORTED_SYSTEM
+	sys.exit(1)
+
+#
 # determine mode
+#
 MOD_STDOUT=False
 MOD_NOTIFY=False
 MOD_WATCHD=False
@@ -101,7 +177,7 @@ if ( argc>0 ):
 
 # if AC plugged in -- just print info and delete tmp file
 # else -- calc remTime
-if ( not s.startswith("Discharging") ):
+if ( not (s.find("ischarging")>=0) ):
     if ( MOD_STDOUT ):
         print ret
 
