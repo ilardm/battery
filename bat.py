@@ -26,8 +26,6 @@ BATPATH="/sys/class/power_supply/BAT0/"
 argv=sys.argv
 argc=len(argv)
 
-username="ilya" # change this username according to your username
-osdfont="DejaVuSans 36"
 tts=1800 # time to suspend (seconds)
 percents=100
 
@@ -58,13 +56,8 @@ def toTime(t):
     return remTimes
 
 def notify(t):
-    # TODO: use pyosd
-	#print MSG_NOT_IMPLEMENTED
 	notifyer.display(t)
 	notifyer.wait_until_no_display()
-
-    #cmd="export DISPLAY=:0.0; killall -q aosd_cat; su %s -c \"echo \\\"%s\\\" | aosd_cat -n \\\"%s\\\" & \"" % (username,t,osdfont)
-    #os.system(cmd)
 
 def watchd(t):
 	if ( t < tts ):
@@ -89,16 +82,12 @@ if ( isLinux ):
 	fh.close()
 	fullCap=string.atof(s)
 elif ( isObsd ):
-	#print MSG_NOT_IMPLEMENTED
-
 	cmd="sysctl -n hw.sensors.acpibat0.amphour0 | sed 's/\ Ah.*//'"
 	pipe=os.popen(cmd)
 	s=pipe.readline()
-	#TODO: close pipe
+	pipe.close()
 	fullCap=string.atof(s)
 	#print fullCap
-
-	#sys.exit(1)
 else:
 	print MSG_UNSUPPORTED_SYSTEM
 	sys.exit(1)
@@ -114,16 +103,12 @@ if ( isLinux ):
 	fh.close()
 	remCap=string.atof(s)
 elif ( isObsd ):
-	#print MSG_NOT_IMPLEMENTED
-
 	cmd="sysctl -n hw.sensors.acpibat0.amphour3 | sed 's/\ Ah.*//'"
 	pipe=os.popen(cmd)
 	s=pipe.readline()
-	#TODO: close pipe
+	pipe.close()
 	remCap=string.atof(s)
 	#print fullCap
-
-	#sys.exit(1)
 else:
 	print MSG_UNSUPPORTED_SYSTEM
 	sys.exit(1)
@@ -150,15 +135,11 @@ if ( isLinux ):
 	s=fh.read()
 	fh.close()
 elif ( isObsd ):
-	#print MSG_NOT_IMPLEMENTED
-
 	cmd="sysctl -n hw.sensors.acpibat0.raw0 | sed -e 's/.*(//' -e 's/).*//'"
 	pipe=os.popen(cmd)
 	s=pipe.readline()
-	#TODO: close pipe
+	pipe.close()
 	#print s
-
-	#sys.exit(1)
 else:
 	print MSG_UNSUPPORTED_SYSTEM
 	sys.exit(1)
