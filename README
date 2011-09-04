@@ -10,6 +10,10 @@ Or add following line into root's(or user's) crontab:
 
 to check battery status every 10 minutes
 
+also required to add following line
+	 %sudo ALL=NOPASSWD: /usr/sbin/pm-suspend
+into sudoers in case you placed this script into user's crontab
+
 === REQUIREMENTS ===
 
 You should have following packges installed:

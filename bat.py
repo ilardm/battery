@@ -36,7 +36,9 @@ isObsd=( sys.platform.find("openbsd")>=0 )
 if (not os.environ.has_key("DISPLAY")):
 	os.putenv("DISPLAY", ":0.0")
 
-notifyer=pyosd.osd(colour="#00FF00", timeout=3, pos=pyosd.POS_BOT)
+notifyer=pyosd.osd(colour="#00FF00", shadow=3, timeout=3, pos=pyosd.POS_BOT, font='-*-terminus-*-*-*-*-32-*-*-*-*-*-koi8-r')
+notifyer.set_shadow_offset(2)
+notifyer.set_shadow_colour("#000000")
 
 # functions
 def dump(remTime):
@@ -47,7 +49,7 @@ def dump(remTime):
     fh.close()
 
 def toTime(t):
-    remTimes="calculating"
+    remTimes="....." # 5 dots for fixed-width output (HH:MM)
     if ( not t==0 ):
         remH=int(t/60/60)
         remM=(t-remH*60*60)/60
@@ -61,9 +63,9 @@ def notify(t):
 
 def watchd(t):
 	if ( t < tts ):
-		notify("going to suspend")
+		notify( "going to suspend: %d seconds on battery left"%(t) )
 		if ( isLinux ):
-			cmd="/usr/sbin/pm-suspend"
+			cmd="sudo /usr/sbin/pm-suspend"
 			os.system(cmd)
 		elif( isObsd ):
 			cmd="/usr/sbin/apm -z"
@@ -117,7 +119,7 @@ else:
 # create info skeleton
 #
 percents=remCap/fullCap*100.0
-ret="%i"%(percents)+chr(37)
+ret="%3i"%(percents)+chr(37) # %3i -- fixed-width output
 
 #
 # time remaining
@@ -210,11 +212,12 @@ if ( os.path.exists(batPath_prev) ):
         try:
           remTime=remCap/vel
         except ZeroDivisionError:
-          remTime=0
+          remTime=oldRemTime # keep old value
         remTimes=toTime(remTime)
 
         dump( remTime )
     else:
+        remTime=oldRemTime # keep old value
         remTimes=toTime( oldRemTime )
 else:
     # first write
@@ -229,5 +232,5 @@ if ( MOD_STDOUT ):
 if ( MOD_NOTIFY ):
     notify("battery level: "+ret)
 
-if ( MOD_WATCHD and suspendAllowed):
+if ( MOD_WATCHD and suspendAllowed ):
     watchd(remTime)
