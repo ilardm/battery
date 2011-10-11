@@ -26,7 +26,8 @@ BATPATH="/sys/class/power_supply/BAT0/"
 argv=sys.argv
 argc=len(argv)
 
-tts=1800 # time to suspend (seconds)
+# tts=1800 # time to suspend (seconds)
+pts = 7 # percents to suspend
 percents=100
 
 isLinux=( sys.platform.find("linux")>=0 )
@@ -61,9 +62,9 @@ def notify(t):
 	notifyer.display(t)
 	notifyer.wait_until_no_display()
 
-def watchd(t):
-	if ( t < tts ):
-		notify( "going to suspend: %d seconds on battery left"%(t) )
+def watchd(p):
+	if ( p < pts ): 
+		notify( "going to suspend: %d percents on battery left"%(p) )
 		if ( isLinux ):
 			cmd="sudo /usr/sbin/pm-suspend"
 			os.system(cmd)
@@ -233,4 +234,5 @@ if ( MOD_NOTIFY ):
     notify("battery level: "+ret)
 
 if ( MOD_WATCHD and suspendAllowed ):
-    watchd(remTime)
+    # watchd(remTime)
+	watchd( percents )
