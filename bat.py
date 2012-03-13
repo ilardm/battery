@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Battery information and watchdog script
-# Copyright (C) 2011  Ilya Arefiev <arefiev.id@gmail.com>
+# Copyright (C) 2011, 2012 Ilya Arefiev <arefiev.id@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import string, time, os, sys, pyosd
+import string, time, os, sys, stat, pyosd
 
 MSG_UNSUPPORTED_SYSTEM="don't know what can i do on this OS"
 MSG_NOT_IMPLEMENTED="not implemented yet"
@@ -48,6 +48,10 @@ def dump(remTime):
     fh.write( str( remCap )+"\n" )
     fh.write( str( remTime )+"\n" )
     fh.close()
+
+    os.chmod( batPath_prev, stat.S_IRUSR | stat.S_IWUSR |
+                            stat.S_IRGRP | stat.S_IWGRP |
+                            stat.S_IROTH | stat.S_IWOTH )
 
 def toTime(t):
     remTimes="....." # 5 dots for fixed-width output (HH:MM)
