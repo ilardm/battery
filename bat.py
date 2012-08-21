@@ -49,9 +49,11 @@ def dump(remTime):
     fh.write( str( remTime )+"\n" )
     fh.close()
 
-    os.chmod( batPath_prev, stat.S_IRUSR | stat.S_IWUSR |
-                            stat.S_IRGRP | stat.S_IWGRP |
-                            stat.S_IROTH | stat.S_IWOTH )
+    # chmod only if own this file
+    if ( os.getuid() == os.stat( batPath_prev )[5] ):
+        os.chmod( batPath_prev, stat.S_IRUSR | stat.S_IWUSR |
+                                stat.S_IRGRP | stat.S_IWGRP |
+                                stat.S_IROTH | stat.S_IWOTH )
 
 def toTime(t):
     remTimes="....." # 5 dots for fixed-width output (HH:MM)
