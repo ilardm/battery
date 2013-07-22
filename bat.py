@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Battery information and watchdog script
@@ -17,7 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import string, time, os, sys, stat, pyosd
+import string, time, os, sys, stat
+
+NO_PYOSD = False
+
+try:
+        import pyosd
+except ImportError:
+        NO_PYOSD = True
 
 MSG_UNSUPPORTED_SYSTEM="don't know what can i do on this OS"
 MSG_NOT_IMPLEMENTED="not implemented yet"
@@ -37,9 +44,11 @@ isObsd=( sys.platform.find("openbsd")>=0 )
 if (not os.environ.has_key("DISPLAY")):
 	os.putenv("DISPLAY", ":0.0")
 
-notifyer=pyosd.osd(colour="#00FF00", shadow=3, timeout=3, pos=pyosd.POS_BOT, font='-*-terminus-*-*-*-*-32-*-*-*-*-*-koi8-r')
-notifyer.set_shadow_offset(2)
-notifyer.set_shadow_colour("#000000")
+notifyer = None
+if not NO_PYOSD:
+    notifyer=pyosd.osd(colour="#00FF00", shadow=3, timeout=3, pos=pyosd.POS_BOT, font='-*-*-*-*-*-*-20-*-*-*-*-*-koi8-r')
+    notifyer.set_shadow_offset(2)
+    notifyer.set_shadow_colour("#000000")
 
 # functions
 def dump(remTime):
@@ -65,6 +74,9 @@ def toTime(t):
     return remTimes
 
 def notify(t):
+        if NO_PYOSD:
+                return
+
 	notifyer.display(t)
 	notifyer.wait_until_no_display()
 
